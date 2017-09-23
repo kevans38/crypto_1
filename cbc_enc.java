@@ -1,4 +1,4 @@
-
+package symCiphers;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
@@ -6,29 +6,25 @@ import java.util.*;
 
 
 public class Cbcenc {
-	
-	
 	//putting into AES to encrypt
-	private static byte[] encrypt_data(byte[] data) 
-	throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
-	IllegalBlockSizeException, BadPaddingException
-    {
-        String key = "bad8deadcafef00d";
-              
-        /*SecretKeySpec(byte[] key, String algorithm)
-        Constructs a secret key from the given byte array.*/
-        SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
-        
-        //provide details for mode and padding scheme
-        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+	private static byte[] encrypt_data(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+	IllegalBlockSizeException, BadPaddingException{
+		String key = "bad8deadcafef00d";
 
-        //init(int opmode, Key key) Initializes this cipher mode with a key.
-        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-       
-        // public final byte[] doFinal(byte[] input)
-        byte[] ct = cipher.doFinal(data);
-	return ct;
-    }
+		/*SecretKeySpec(byte[] key, String algorithm)
+		Constructs a secret key from the given byte array.*/
+		SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+
+		//provide details for mode and padding scheme
+		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+
+		//init(int opmode, Key key) Initializes this cipher mode with a key.
+		cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+
+		// public final byte[] doFinal(byte[] input)
+		byte[] ct = cipher.doFinal(data);
+        	return ct;
+   	}
 	
 	//generate IV with random()
 	public static void IVgen(LinkedList<Integer> IVrand){
@@ -42,7 +38,6 @@ public class Cbcenc {
 	
 	}
 	
-
 	public static void main(String[] args)throws Exception{
 		String test = "1234567890abcdef";
 		 
