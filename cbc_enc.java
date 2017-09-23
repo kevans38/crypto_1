@@ -40,10 +40,12 @@ public class Cbcenc {
 	
 	public static void main(String[] args)throws Exception{
 		String test = "1234567890abcdef";
-		 
+		
+		//Make IV
 		LinkedList<Integer> IVrand = new LinkedList<Integer>();
 		Cbcenc.IVgen(IVrand);
-	
+		
+		//test IV
 		for(int i : IVrand){
 			System.out.print(i);
 		}
