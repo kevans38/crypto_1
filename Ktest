@@ -1,0 +1,68 @@
+package symCiphers;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.security.*;
+
+
+public class Cbcenc {
+	
+	
+	//putting into AES to encrypt
+	private static byte[] encrypt_data(byte[] data) 
+	throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+	IllegalBlockSizeException, BadPaddingException
+    {
+        String key = "bad8deadcafef00d";
+        
+        /*SecretKeySpec(byte[] key, String algorithm)
+        Constructs a secret key from the given byte array.*/
+        SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+        
+        //provide details for mode and padding scheme
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+
+        //init(int opmode, Key key) Initializes this cipher mode with a key.
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
+       
+        // public final byte[] doFinal(byte[] input)
+        byte[] ct = cipher.doFinal(data);
+      	return ct;
+    }
+	
+	
+	//putting into AES to decrypt
+	private static byte[] decrypt_data(byte[] encData)throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+	IllegalBlockSizeException, BadPaddingException
+    {
+        String key = "bad8deadcafef00d";
+        
+        /*SecretKeySpec(byte[] key, String algorithm)
+        Constructs a secret key from the given byte array.*/
+        SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+        
+        //provide details for mode and padding scheme
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+
+        // public final byte[] doFinal(byte[] input)
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+
+        // public final byte[] doFinal(byte[] input)
+        byte[] original = cipher.doFinal(encData);
+	      return original;
+    }
+
+	
+	
+	public static void main(String[] args)throws Exception{
+		String test = "1234567890abcdef";
+		
+		//encrypt
+		//getBytes returns an array of bytes
+		byte[] ct = Cbcenc.encrypt_data(test.getBytes());
+		System.out.println(new String(ct));
+		
+		//decrypt
+    byte[] pt = Cbcenc.decrypt_data(ct);
+    System.out.println(new String(pt));		
+	}
+}
