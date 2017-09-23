@@ -1,4 +1,4 @@
-package symCiphers;
+
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
