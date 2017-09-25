@@ -1,16 +1,20 @@
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
-import java.util.*;
 import java.io.*;
 
 public class ctfuncs
 {
+	
+	static int BIT_BLOCK_SIZE = 128;
 	//need to divide by 8 because it will be in BYTES
 	// so 128 bits / 8 = 16 bytes
-	static int BLOCK_SIZE = 128/8;
+	static int BLOCK_SIZE = BIT_BLOCK_SIZE/8;
 	
-	//Used for testing. TURN TO FALSE BEFORE TURNING IN
+//TODO: ?...
+	static int BUFFER = 12000;
+	
+//TODO: Used for testing. TURN TO FALSE BEFORE TURNING IN
 	static boolean PRINTING = false;
 
 
@@ -37,22 +41,21 @@ public class ctfuncs
    	}
 	
 	//generate IV with random()
-	public static void IVgen(LinkedList<Integer> IVrand){
-		Random rand = new Random();
-		
-		for(int i = 0; i < 128; i++){
-			//each bit
-			int r = rand.nextInt(15)+1;//15 is max number in a bit,1 is min
-			IVrand.add(r);
-		}
-	
+	public static byte[] IVgen()
+	{
+		byte[] IV = new byte[BLOCK_SIZE];	
+//TODO: not... actually random?...
+		SecureRandom random = new SecureRandom();
+		random.nextBytes(IV);
+
+		return IV;
 	}
 		
 
 	public static byte[] key_file ( String[] args ) throws Exception
 	{
-		byte[] data = new byte[BLOCK_SIZE];
-		
+		byte[] data = null;
+				
 		for ( int i = 0; i < args.length; i++ )
 		{
 			//-k <key file>:  required, specifies a file storing a valid AES key as a hex encoded string
@@ -62,7 +65,7 @@ public class ctfuncs
 				
 				try
 				{
-					data = read_file(args[i]);
+					data =  read_file(args[i]);
 				} 
 				catch (Exception e)
 				{
@@ -71,10 +74,10 @@ public class ctfuncs
 					return null;
 				}
 
-				
-				break;
 			}
+
 		}
+
 		
 		
 		return data;
@@ -83,11 +86,11 @@ public class ctfuncs
 	
 	public static byte[] input_file ( String[] args ) throws Exception
 	{
-		byte[] data = new byte[BLOCK_SIZE];
-		
+		byte[] data = null;
+				
 		for ( int i = 0; i < args.length; i++ )
 		{
-			//looks for the input file
+			//Tries to find input file
 			if ( args[i].equals("-i") )
 			{
 				i++;
@@ -103,16 +106,15 @@ public class ctfuncs
 					return null;
 				}
 
-				
-				break;
 			}
+			
 		}
 		
-		
 		return data;
+					
 	}
 	
-	public static void output_file ( String[] args, String output )
+	public static void output_file ( String[] args, byte[] output ) throws Exception
 	{
 		
 		for ( int i = 0; i < args.length; i++ )
@@ -120,9 +122,8 @@ public class ctfuncs
 			//-o <output file>: required, specifies the path of the file where the resulting output is stored
 			if ( args[i].equals("-o") )
 			{
-				System.out.println( args[i+1] );
-				//make output file
 				i++;
+				write_file( args[i], output );
 				break;
 			}
 		}
@@ -133,7 +134,7 @@ public class ctfuncs
 	
 	public static byte[] iv_file ( String[] args )throws Exception
 	{
-		byte[] data = new byte[BLOCK_SIZE];
+		byte[] data = null;
 		
 		boolean iv_found = false;
 		
@@ -167,7 +168,7 @@ public class ctfuncs
 		}
 		else
 		{
-//TODO:			//make IV generator here
+			data = IVgen();
 			return data;
 		}
 		
@@ -179,7 +180,7 @@ public class ctfuncs
 	{
 		InputStream is = null;
 				
-		byte[] data = new byte[BLOCK_SIZE];
+		byte[] data = new byte[BUFFER];
 		
 		try
 		{
@@ -217,7 +218,54 @@ if (PRINTING)
 	}
 	
 	
+	public static void write_file(String filename, byte[] data ) throws Exception
+	{
+		
+			FileOutputStream stream = new FileOutputStream(filename);
+			try 
+			{	
+					stream.write(data);
+			}
+			catch (Exception e)
+			{
+				System.err.format("Exception occurred trying to write '%s'.", filename);
+				e.printStackTrace();
+			}
+			finally
+			{
+				stream.close();
+			}
+		
+			
+		}
+		
 	
+	public static byte[][] make_blocks( byte[] data )
+	{
+		int data_size = data.length;
 		
+		byte[][] data_blocks = new byte[(data_size/BLOCK_SIZE)+1][BLOCK_SIZE];
 		
+		for( int i = 0; i < data_size; i++ ) 
+		{
+			data_blocks[i/BLOCK_SIZE][i%BLOCK_SIZE] = data[i];
+		} 
+		
+		return data_blocks;
+	}
+	
+	public static byte[] merge_blocks( byte[][] data )
+	{
+		int data_size = data.length;
+		
+		byte[] data_string = new byte[data_size];
+		
+		for( int i = 0; i < data_size; i++ ) 
+		{
+			data_string[i] = data[i/BLOCK_SIZE][i%BLOCK_SIZE];
+		} 
+		
+		return data_string;
+	}
+
 }
