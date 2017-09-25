@@ -6,20 +6,22 @@ public class Main
 		byte[] input_data;
 		byte[] iv_data;
 		
+		byte[][] key_blocks;
+		byte[][] input_blocks;
+		byte[][] iv_blocks;
+
+		
+//TODO: array is an example. Need to remove
+		byte[] output_data;
 		
 		key_data = ctfuncs.key_file(args);
 		input_data = ctfuncs.input_file(args);
 		iv_data = ctfuncs.iv_file(args);
+	
+		input_blocks = ctfuncs.make_blocks(input_data);
 		
+		output_data = ctfuncs.merge_blocks(input_blocks);
 		
-		//encrypt
-		//getBytes returns an array of bytes
-		byte[] ct = ctfuncs.encrypt_data(test.getBytes());
-		//System.out.println(new String(ct));
-		
-		
-
-		
-		ctfuncs.output_file(args, "output");
+		ctfuncs.output_file(args, output_data );
 	}
 }
