@@ -11,23 +11,13 @@ public class ctfuncs
 	// so 128 bits / 8 = 16 bytes
 	static int BLOCK_SIZE = BIT_BLOCK_SIZE/8;
 	
-//TODO: ?...
-	static int BUFFER = 12000;
-	
-//TODO: Used for testing. TURN TO FALSE BEFORE TURNING IN
-	static boolean PRINTING = false;
-
-
-	
-	
 	//putting into AES to encrypt
-	static byte[] encrypt_data(byte[] data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
-	IllegalBlockSizeException, BadPaddingException{
-		String key = "bad8deadcafef00d";
-
+	static byte[] encrypt_data(byte[] data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+	IllegalBlockSizeException, BadPaddingException
+	{
 		/*SecretKeySpec(byte[] key, String algorithm)
 		Constructs a secret key from the given byte array.*/
-		SecretKeySpec skeySpec = new SecretKeySpec(key.getBytes(), "AES");
+		SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
 
 		//provide details for mode and padding scheme
 		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
@@ -37,7 +27,8 @@ public class ctfuncs
 
 		// public final byte[] doFinal(byte[] input)
 		byte[] ct = cipher.doFinal(data);
-        	return ct;
+        
+		return ct;
    	}
 	
 	//generate IV with random()
@@ -180,25 +171,18 @@ public class ctfuncs
 	{
 		InputStream is = null;
 				
-		byte[] data = new byte[BUFFER];
+		byte[] data;
 		
 		try
 		{
 			is = new FileInputStream(filename);
 		    
+			File file = new File(filename);
+			
+			data = new byte[(int) file.length()];
+			
 			is.read(data);
 
-if (PRINTING)
-{
-	for(byte b:data) {
-         
-        // convert byte to character
-        char c = (char)b;
-        
-        // prints character
-        System.out.print(c);
-     }
-}
 			return data;
 			
 		}
@@ -256,7 +240,7 @@ if (PRINTING)
 	
 	public static byte[] merge_blocks( byte[][] data )
 	{
-		int data_size = data.length;
+		int data_size = data.length * BLOCK_SIZE;
 		
 		byte[] data_string = new byte[data_size];
 		
@@ -267,5 +251,63 @@ if (PRINTING)
 		
 		return data_string;
 	}
-
+	
+	public static byte[][] padding( byte[][] data )
+	{
+		int data_size = data.length * BLOCK_SIZE;
+		
+		byte padding = 1;
+		
+		for( int i = 0; i < data_size; i++ ) 
+		{
+			if ( data[i/BLOCK_SIZE][i%BLOCK_SIZE] == 0 )
+			{
+				data[i/BLOCK_SIZE][i%BLOCK_SIZE] = padding;
+				padding++;
+			}
+		} 
+		
+		return data;
+	}
+	
+	//TODO: an unpadding function
+	
+	
+	public static byte[] append_bytes( byte[] to_data, byte[] from_data, int to_data_starting_byte )
+	{
+		for ( int i = 0; i < from_data.length; i++ )
+		{
+			to_data[(to_data_starting_byte*BLOCK_SIZE)+i] = from_data[i];
+		}
+		
+		return to_data;
+	}
+	
+	public static byte[] xor_bytes( byte[] data1, byte[] data2 )
+	{
+		byte[] xor_data = new byte[BLOCK_SIZE];
+		
+		for( int i = 0; i < BLOCK_SIZE; i++ )
+		{
+			xor_data[i] = (byte) (data1[i] ^ data2[i]);
+		}
+		
+		return xor_data;
+	}
+	
+	public static void test_printing( byte[] data )
+	{
+		for(byte b:data) {
+	         
+	        // convert byte to character
+	        char c = (char)b;
+	        
+	        // prints character
+	        System.out.print(c);
+	     }
+		
+		System.out.println();;
+	}
+	
+	
 }
