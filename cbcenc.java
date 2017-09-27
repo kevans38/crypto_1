@@ -18,15 +18,17 @@ public class cbcenc
 		
 		byte[] temp_data = null;
 		
+		int input_size;
+		
 		key_data = ctfuncs.key_file(args);
 		input_data = ctfuncs.input_file(args);
+		input_size = input_data.length;
+		
 		iv_data = ctfuncs.iv_file(args);
+						
+		input_blocks = ctfuncs.make_blocks(input_data, input_size);
 		
-		ctfuncs.test_printing(iv_data);
-		
-		input_blocks = ctfuncs.make_blocks(input_data);
-		
-		input_blocks = ctfuncs.padding(input_blocks);
+		input_blocks = ctfuncs.padding(input_blocks, input_size);
 		
 		//+1 for the IV at the front
 		cipher_text = new byte[(input_blocks.length+1)*BLOCK_SIZE];
@@ -45,7 +47,6 @@ public class cbcenc
 			}
 			
 			temp_data = ctfuncs.encrypt_data(temp_data, key_data);
-			
 			
 			cipher_text = ctfuncs.append_bytes(cipher_text, temp_data, i+1);
 

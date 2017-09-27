@@ -31,11 +31,11 @@ public class ctfuncs
 		return ct;
    	}
 	
+	//TODO: pretty sure this is working now
 	//generate IV with random()
 	public static byte[] IVgen()
 	{
 		byte[] IV = new byte[BLOCK_SIZE];	
-//TODO: not... actually random?...
 		SecureRandom random = new SecureRandom();
 		random.nextBytes(IV);
 
@@ -54,22 +54,18 @@ public class ctfuncs
 			{
 				i++;
 				
-				try
-				{
-					data =  read_file(args[i]);
-				} 
-				catch (Exception e)
-				{
-					System.err.format("Exception occurred trying to read '%s'.", args[i]);
-					e.printStackTrace();
-					return null;
-				}
-
+				data =  read_file(args[i]);
+				
+				break;
 			}
 
 		}
 
-		
+		if (data == null)
+		{
+			System.err.println("No file was found. Need to exit");
+			System.exit(0);
+		}
 		
 		return data;
 					
@@ -86,19 +82,17 @@ public class ctfuncs
 			{
 				i++;
 				
-				try
-				{
-					data = read_file(args[i]);
-				} 
-				catch (Exception e)
-				{
-					System.err.format("Exception occurred trying to read '%s'.", args[i]);
-					e.printStackTrace();
-					return null;
-				}
-
+				data = read_file(args[i]);
+				
+				break;
 			}
 			
+		}
+		
+		if (data == null)
+		{
+			System.err.println("No file was found. Need to exit");
+			System.exit(0);
 		}
 		
 		return data;
@@ -107,7 +101,6 @@ public class ctfuncs
 	
 	public static void output_file ( String[] args, byte[] output ) throws Exception
 	{
-		
 		for ( int i = 0; i < args.length; i++ )
 		{
 			//-o <output file>: required, specifies the path of the file where the resulting output is stored
@@ -118,9 +111,6 @@ public class ctfuncs
 				break;
 			}
 		}
-		
-		//put results in output file
-					
 	}
 	
 	public static byte[] iv_file ( String[] args )throws Exception
@@ -136,17 +126,7 @@ public class ctfuncs
 			{
 				i++;
 				
-				try
-				{
-					data = read_file(args[i]);
-				} 
-				catch (Exception e)
-				{
-					System.err.format("Exception occurred trying to read '%s'.", args[i]);
-					e.printStackTrace();
-					return null;
-				}
-
+				data = read_file(args[i]);
 				
 				break;
 			}
@@ -224,10 +204,10 @@ public class ctfuncs
 		}
 		
 	
-	public static byte[][] make_blocks( byte[] data )
-	{
-		int data_size = data.length;
-		
+	public static byte[][] make_blocks( byte[] data, int data_size )
+	{		
+		//the +1 is for the padding. 
+		//TODO: We will need to have add some more code for the ctr, as there is no padding
 		byte[][] data_blocks = new byte[(data_size/BLOCK_SIZE)+1][BLOCK_SIZE];
 		
 		for( int i = 0; i < data_size; i++ ) 
@@ -252,26 +232,44 @@ public class ctfuncs
 		return data_string;
 	}
 	
-	public static byte[][] padding( byte[][] data )
-	{
+	public static byte[][] padding( byte[][] data, int msg_length )
+	{		
+		
 		int data_size = data.length * BLOCK_SIZE;
 		
-		byte padding = 1;
+		byte padding = (byte)(data_size - msg_length);
 		
-		for( int i = 0; i < data_size; i++ ) 
+		for( int i = msg_length; i < data.length; i++ ) 
 		{
 			if ( data[i/BLOCK_SIZE][i%BLOCK_SIZE] == 0 )
 			{
 				data[i/BLOCK_SIZE][i%BLOCK_SIZE] = padding;
-				padding++;
 			}
 		} 
 		
 		return data;
 	}
 	
-	//TODO: an unpadding function
+	//TODO: check to see if this works
+	public static byte[] unpadding( byte[] data )
+	{		
+		int last_byte = data.length;
+		
+		int unpadded_length = BLOCK_SIZE - data[last_byte];
+		
+		
+		
+		byte[] unpadded_data = new byte[unpadded_length];
+		
+		for ( int i = 0; i < unpadded_length; i++ )
+		{
+			unpadded_data[i] = data[i];
+		}
+		
+		return unpadded_data;
+		
 	
+	}
 	
 	public static byte[] append_bytes( byte[] to_data, byte[] from_data, int to_data_starting_byte )
 	{
