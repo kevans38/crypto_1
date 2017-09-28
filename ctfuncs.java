@@ -11,7 +11,7 @@ public class ctfuncs
 	// so 128 bits / 8 = 16 bytes
 	static int BLOCK_SIZE = BIT_BLOCK_SIZE/8;
 	
-	//putting into AES to encrypt
+	//Put block into AES to encrypt
 	static byte[] encrypt_data(byte[] data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
 	IllegalBlockSizeException, BadPaddingException
 	{
@@ -32,7 +32,9 @@ public class ctfuncs
    	}
 	
 	//TODO: pretty sure this is working now
-	//generate IV with random()
+	/*
+	 * Generates random IV 
+	 */
 	public static byte[] IVgen()
 	{
 		byte[] IV = new byte[BLOCK_SIZE];	
@@ -41,8 +43,10 @@ public class ctfuncs
 
 		return IV;
 	}
-		
 
+	/*
+	 * Gets key file from command line with -k command
+	 */
 	public static byte[] key_file ( String[] args ) throws Exception
 	{
 		byte[] data = null;
@@ -71,6 +75,9 @@ public class ctfuncs
 					
 	}
 	
+	/* 
+	 * looks for input file, error if not found
+	 */
 	public static byte[] input_file ( String[] args ) throws Exception
 	{
 		byte[] data = null;
@@ -99,6 +106,9 @@ public class ctfuncs
 					
 	}
 	
+	/*
+	 * Gets output file name from command line with -o
+	 */
 	public static void output_file ( String[] args, byte[] output ) throws Exception
 	{
 		for ( int i = 0; i < args.length; i++ )
@@ -113,6 +123,9 @@ public class ctfuncs
 		}
 	}
 	
+	/*
+	 * (Optional) Gets IV from file using -v
+	 */
 	public static byte[] iv_file ( String[] args )throws Exception
 	{
 		byte[] data = null;
@@ -145,7 +158,9 @@ public class ctfuncs
 		
 	}
 	
-	
+	/*
+	 * Gets data from file 1 byte at a time
+	 */
 	//need to make open/make file functions
 	public static byte[] read_file(String filename) throws Exception
 	{
@@ -181,7 +196,9 @@ public class ctfuncs
 		}
 	}
 	
-	
+	/*
+	 * Writes data to chosen file
+	 */
 	public static void write_file(String filename, byte[] data ) throws Exception
 	{
 		
@@ -203,7 +220,9 @@ public class ctfuncs
 			
 		}
 		
-	
+	/*
+	 * Separates message into blocks and pads to correct length
+	 */
 	public static byte[][] make_blocks( byte[] data, int data_size )
 	{		
 		//the +1 is for the padding. 
@@ -218,6 +237,9 @@ public class ctfuncs
 		return data_blocks;
 	}
 	
+	/*
+	 * 
+	 */
 	public static byte[] merge_blocks( byte[][] data )
 	{
 		int data_size = data.length * BLOCK_SIZE;
@@ -232,6 +254,9 @@ public class ctfuncs
 		return data_string;
 	}
 	
+	/*
+	 * Pads message blocks to correct length of 128 bits
+	 */
 	public static byte[][] padding( byte[][] data, int msg_length )
 	{		
 		
@@ -250,6 +275,9 @@ public class ctfuncs
 		return data;
 	}
 	
+	/*
+	 * Unpads ciphertext for decryption
+	 */
 	//TODO: check to see if this works
 	public static byte[] unpadding( byte[] data )
 	{		
@@ -271,6 +299,9 @@ public class ctfuncs
 	
 	}
 	
+	/*
+	 * Appends IV to cipher text message
+	 */
 	public static byte[] append_bytes( byte[] to_data, byte[] from_data, int to_data_starting_byte )
 	{
 		for ( int i = 0; i < from_data.length; i++ )
@@ -281,6 +312,9 @@ public class ctfuncs
 		return to_data;
 	}
 	
+	/*
+	 * Implements XOR on bytes
+	 */
 	public static byte[] xor_bytes( byte[] data1, byte[] data2 )
 	{
 		byte[] xor_data = new byte[BLOCK_SIZE];
@@ -293,6 +327,9 @@ public class ctfuncs
 		return xor_data;
 	}
 	
+	/*
+	 * FOR TESTING
+	 */
 	public static void test_printing( byte[] data )
 	{
 		for(byte b:data) {
