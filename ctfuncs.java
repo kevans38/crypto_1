@@ -11,7 +11,7 @@ public class ctfuncs
 	// so 128 bits / 8 = 16 bytes
 	static int BLOCK_SIZE = BIT_BLOCK_SIZE/8;
 	
-	//Put block into AES to encrypt
+	//Put block and key into AES to encrypt
 	static byte[] encrypt_data(byte[] data, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
 	IllegalBlockSizeException, BadPaddingException
 	{
@@ -31,7 +31,24 @@ public class ctfuncs
 		return ct;
    	}
 	
-	//TODO: pretty sure this is working now
+	//Put block and key into AES to decrypt
+	public static byte[] decrypt_data(byte[] encData, byte[] key) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, 
+	IllegalBlockSizeException, BadPaddingException
+    {
+		/*SecretKeySpec(byte[] key, String algorithm)
+		Constructs a secret key from the given byte array.*/
+        SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
+        
+        //provide details for mode and padding scheme
+        Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
+
+        //init(int opmode, Key key) Initializes this cipher mode with a key.
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec);
+
+        byte[] original = cipher.doFinal(encData);
+        return original;
+    }
+	
 	/*
 	 * Generates random IV 
 	 */
@@ -122,7 +139,7 @@ public class ctfuncs
 			}
 		}
 	}
-	
+		
 	/*
 	 * (Optional) Gets IV from file using -v
 	 */
@@ -161,7 +178,6 @@ public class ctfuncs
 	/*
 	 * Gets data from file 1 byte at a time
 	 */
-	//need to make open/make file functions
 	public static byte[] read_file(String filename) throws Exception
 	{
 		InputStream is = null;
@@ -216,9 +232,23 @@ public class ctfuncs
 			{
 				stream.close();
 			}
-		
 			
-		}
+	}
+	
+	/*
+	 * Separates message into blocks with no extra +1 for padding
+	 */
+	public static byte[][] make_b( byte[] data, int data_size )
+	{		
+		byte[][] data_blocks = new byte[(data_size/BLOCK_SIZE)][BLOCK_SIZE];
+		
+		for( int i = 0; i < data_size; i++ ) 
+		{
+			data_blocks[i/BLOCK_SIZE][i%BLOCK_SIZE]= data[i];
+		} 
+		
+		return data_blocks;
+	}
 		
 	/*
 	 * Separates message into blocks and pads to correct length
@@ -226,7 +256,6 @@ public class ctfuncs
 	public static byte[][] make_blocks( byte[] data, int data_size )
 	{		
 		//the +1 is for the padding. 
-		//TODO: We will need to have add some more code for the ctr, as there is no padding
 		byte[][] data_blocks = new byte[(data_size/BLOCK_SIZE)+1][BLOCK_SIZE];
 		
 		for( int i = 0; i < data_size; i++ ) 
@@ -238,7 +267,7 @@ public class ctfuncs
 	}
 	
 	/*
-	 * 
+	 * merge_blocks for decryption
 	 */
 	public static byte[] merge_blocks( byte[][] data )
 	{
@@ -264,28 +293,24 @@ public class ctfuncs
 		
 		byte padding = (byte)(data_size - msg_length);
 		
-		for( int i = msg_length; i < data.length; i++ ) 
+		for( int i = msg_length; i < data.length*BLOCK_SIZE; i++ ) 
 		{
 			if ( data[i/BLOCK_SIZE][i%BLOCK_SIZE] == 0 )
 			{
 				data[i/BLOCK_SIZE][i%BLOCK_SIZE] = padding;
 			}
-		} 
-		
+		} 		
 		return data;
 	}
 	
 	/*
 	 * Unpads ciphertext for decryption
 	 */
-	//TODO: check to see if this works
 	public static byte[] unpadding( byte[] data )
 	{		
 		int last_byte = data.length;
-		
-		int unpadded_length = BLOCK_SIZE - data[last_byte];
-		
-		
+
+		int unpadded_length = BLOCK_SIZE - data[last_byte-1];
 		
 		byte[] unpadded_data = new byte[unpadded_length];
 		
@@ -295,8 +320,7 @@ public class ctfuncs
 		}
 		
 		return unpadded_data;
-		
-	
+			
 	}
 	
 	/*
@@ -328,7 +352,28 @@ public class ctfuncs
 	}
 	
 	/*
-	 * FOR TESTING
+	 * converts bytes to string message, don't need
+	 */
+	public static String make_string( byte[] data )
+	{
+		String message = "";
+		
+		//convert to text and add to message
+		for(byte b:data) {
+		     
+		    // convert byte to character
+		    char c = (char)b;
+		    
+		    message += c;
+		    // prints character
+		   
+		 }
+		
+		return message;
+	}
+	
+	/*
+	 * FOR TESTING of byte[]
 	 */
 	public static void test_printing( byte[] data )
 	{
