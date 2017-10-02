@@ -375,19 +375,46 @@ public class ctfuncs
 	/*
 	 * FOR TESTING of byte[]
 	 */
-	public static void test_printing( byte[] data )
+	public static synchronized void test_printing( byte[] data )
 	{
 		for(byte b:data) {
 	         
 	        // convert byte to character
 	        char c = (char)b;
-	        
+			 
 	        // prints character
-	        System.out.print(c);
+			   System.out.println(b + ":" + c);
 	     }
 		
-		System.out.println();;
+		System.out.println("------------------------");;
 	}
 	
-	
+	/*This is for incrementing a byte array by a certain number*/
+	public static byte[] increment_by (byte[] B, int N){
+
+		int i, j;
+		//boolean carry = true;
+
+		for (i = 0; i < N; i++){
+
+			boolean carry = true;
+			for (j = B.length-1; j >= 0; j--){
+
+				if (carry){
+					
+					if (B[j] < 0xffff){
+						
+						B[j] += 1;
+						carry = false;
+
+					}else{
+						B[j] = 0;
+						carry = true;
+					}
+
+				}
+			}
+		}
+		return B;
+	}
 }
