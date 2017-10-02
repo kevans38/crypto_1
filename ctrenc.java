@@ -19,7 +19,11 @@ public class ctrenc implements Runnable
 	/*Syncronized method to get the start values of each thread {0..3} in this case as we're assuming
 	 * a 4 core processor*/
 	public synchronized int get_start(){
-
+		
+		if (thread_start == 0){
+			cipher_blocks[0] = iv_data.clone();
+			thread_start++;
+		}
 		int rv = thread_start;
 		thread_start++;
 		return rv;
@@ -43,8 +47,13 @@ public class ctrenc implements Runnable
 		my_IV = iv_data.clone();
 		my_IV = ctfuncs.increment_by(my_IV, my_block);
 		
-		num_blocks = input_size/BLOCK_SIZE;
-		last_offset = input_size%BLOCK_SIZE;
+		if (input_size%BLOCK_SIZE != 0){
+			num_blocks = input_size/BLOCK_SIZE + 2;
+			last_offset = input_size%BLOCK_SIZE;
+		}else{
+			num_blocks = input_size/BLOCK_SIZE + 1;
+			last_offset = BLOCK_SIZE;			
+		}
 
 		while(my_block < num_blocks){
 				
@@ -53,16 +62,15 @@ public class ctrenc implements Runnable
 				 * with plaintext block. Truncate the last block to be the same as message size.*/
 				try{
 					AES_Out = ctfuncs.encrypt_data(my_IV, key_data);
-					cipher_block = ctfuncs.xor_bytes(AES_Out, input_blocks[my_block]);
+					cipher_block = ctfuncs.xor_bytes(AES_Out, input_blocks[my_block -1]);
 
 					if (my_block != (num_blocks - 1)){
 						
-						ctfuncs.test_printing(cipher_block);
 						cipher_blocks[my_block] = cipher_block;
 
 					}else{
 
-						cipher_blocks[my_block] = Arrays.copyOfRange(cipher_block, 0, (last_offset -1));
+						cipher_blocks[my_block] = Arrays.copyOfRange(cipher_block, 0, (last_offset));
 
 					}
 
@@ -76,7 +84,7 @@ public class ctrenc implements Runnable
 				 *va:63: and then increment the IV by 4 if not, break otherwise*/
 				//ctfuncs.test_printing(my_IV);
 				my_block += 4;
-				if (my_block*BLOCK_SIZE > input_size) break;
+				if (my_block > num_blocks) break;
 				my_IV = ctfuncs.increment_by(my_IV,4);
 
 		}
@@ -95,7 +103,9 @@ public class ctrenc implements Runnable
 		this.input_size = input_data.length;
 		this.iv_data = ctfuncs.iv_file(args);
 		this.input_blocks = ctfuncs.make_blocks(input_data, input_size);
-		this.cipher_blocks = new byte [input_size/BLOCK_SIZE][];
+		
+		if(this.input_size%BLOCK_SIZE != 0) this.cipher_blocks = new byte [input_size/BLOCK_SIZE + 2][];
+		else this.cipher_blocks = new byte [input_size/BLOCK_SIZE + 1][];
 	}
 
 	public static void main(String[] args) throws Exception
@@ -103,6 +113,8 @@ public class ctrenc implements Runnable
 		
 		Thread[] t = new Thread[4];
 		ctrenc C = new ctrenc(args);
+		boolean at_end = false;
+
 		/*Fire off four threads for the class that'll call the run function!*/
 		for (int i = 0; i < 4; i++){
 			t[i] = new Thread(C);
@@ -113,12 +125,19 @@ public class ctrenc implements Runnable
 		for (int i = 0; i < 4; i++) t[i].join();
 
 		/*Lay the blocks out sequentially*/
-		byte[] cipher_text = new byte [C.input_size];
+		byte[] cipher_text = new byte [C.input_size + BLOCK_SIZE];
 		for (int i = 0; i < C.num_blocks; i++){
 			
 			for (int j = 0; j < C.cipher_blocks[i].length; j++){
 				cipher_text[(BLOCK_SIZE * i) + j] = C.cipher_blocks[i][j];
+				
+				if ((BLOCK_SIZE * i) + j == (C.input_size + BLOCK_SIZE)){
 
+					at_end = true;
+					break;
+				}
+
+				if (at_end == true) break;
 			}
 
 		}
